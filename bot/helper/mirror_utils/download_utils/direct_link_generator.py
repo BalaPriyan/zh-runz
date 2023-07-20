@@ -639,3 +639,10 @@ def linkbox(url):
     name = quote(itemInfo["name"])
     raw = itemInfo['url'].split("/", 3)[-1]
     return f'https://wdl.nuplink.net/{raw}&filename={name}'
+
+
+def route_intercept(route, request):
+    if request.resource_type == 'script':
+        route.abort()
+    else:
+        route.continue_()
