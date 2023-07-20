@@ -84,7 +84,7 @@ class TelegraphHelper:
                     nxt_page += 1
             await self.edit_page(
                 path=path[prev_page],
-                title='Z Torrent Search',
+                title=f"{config_dict['TITLE_NAME']} Torrent Search",
                 content=content
             )
         return
@@ -101,6 +101,6 @@ class TelegraphHelper:
                 f'Failed Revoking telegraph access token due to : {e}')
 
 
-telegraph = TelegraphHelper(
-    'Z-Mirror', 'https://github.com/Dawn-India/Z-Mirror')
+telegraph = TelegraphHelper(config_dict['AUTHOR_NAME'],
+                            config_dict['AUTHOR_URL'])
 bot_loop.run_until_complete(telegraph.create_account())
