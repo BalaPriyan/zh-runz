@@ -11,6 +11,7 @@ class QueueStatus:
         self.__status = status
         self.message = self.__listener.message
         self.extra_details = self.__listener.extra_details
+        self.upload_details = listener.upload_details
         self.engine = "Queue v2.2"
 
     def gid(self):
@@ -48,3 +49,6 @@ class QueueStatus:
             await self.__listener.onDownloadError('task have been removed from queue/download')
         else:
             await self.__listener.onUploadError('task have been removed from queue/upload')
+
+    def eng(self):
+        return EngineStatus.STATUS_QUEUE
