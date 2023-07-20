@@ -205,10 +205,21 @@ async def _mirror_leech(client, message, isQbit=False, isLeech=False, sameDir=No
             link = await reply_to.download()
             file_ = None
 
-    if not is_url(link) and not is_magnet(link) and not await aiopath.exists(link) and not is_rclone_path(link) and file_ is None:
-        reply_message = await sendMessage(message, MIRROR_HELP_MESSAGE.format(cmd = message.command[0]))
-        await auto_delete_message(message, reply_message)
+ if not is_url(link) and not is_magnet(link) and not await aiopath.exists(link) and not is_rclone_path(link) and file_ is None:
+        a = await sendMessage(message, f"❗️ The command format is incorrect, or the link was not found in your command. \n\nGetting Mirrors & Leech Help Command, Please Wait.....⏳")
+        await sleep(2)
+        mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
+        buttons = ButtonMaker()
+        buttons.ubutton("📄 Mirror Leech Help", 'https://graph.org/Tomen-Help-Mirror--Leech-Comments-07-20')
+        buttons.ubutton("👤 Owner", 'https://t.me/KingOfFondness')
+        capt = f"""
+<b> Hi {mention} 🤗 </b>
+Please check the Mirror Leech Help command to view the correct command format.\n
+"""
+        await sleep(5)
+        await editMessage(a, capt, buttons.build_menu(1))
         await delete_links(message)
+        await auto_delete_message(message, a)
         return
 
     if not message.from_user:
