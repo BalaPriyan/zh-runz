@@ -1,5 +1,5 @@
 from bot import LOGGER
-from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size
+from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size, EngineStatus
 
 
 class QueueStatus:
