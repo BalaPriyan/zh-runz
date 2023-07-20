@@ -109,6 +109,12 @@ async def stats(_, message):
 
 
 async def start(_, message):
+   buttons = ButtonMaker()
+    buttons.ubutton(BotTheme('ST_BN1_NAME'), BotTheme('ST_BN1_URL'))
+    buttons.ubutton(BotTheme('ST_BN2_NAME'), BotTheme('ST_BN2_URL'))
+    reply_markup = buttons.build_menu(2)
+    if len(message.command) > 1 and message.command[1] == "wzmlx":
+        await message.delete()
     if len(message.command) > 1:
         userid = message.from_user.id
         input_token = message.command[1]
@@ -124,13 +130,9 @@ async def start(_, message):
         msg += f'Validity: {get_readable_time(int(config_dict["TOKEN_TIMEOUT"]))}'
         return await sendMessage(message, msg)
     elif config_dict['DM_MODE']:
-        start_string = 'Bot Started.\n' \
-                       'Now I can send your stuff here.\n' \
-                       'Use me here: @Z_Mirror'
+          await sendMessage(message, BotTheme('ST_BOTPM'), reply_markup, photo='IMAGES') 
     else:
-        start_string = 'Sorry, you cant use me here!\n' \
-                       'Join @Z_Mirror to use me.\n' \
-                       'Thank You'
+      await sendMessage(message, BotTheme('ST_UNAUTH'), reply_markup, photo='IMAGES')
     await sendMessage(message, start_string)
 
 
