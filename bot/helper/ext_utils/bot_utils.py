@@ -32,17 +32,17 @@ PAGES = 1
 PAGE_NO = 1
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Uploading"
-    STATUS_DOWNLOADING = "Downloading"
-    STATUS_CLONING = "Cloning"
-    STATUS_QUEUEDL = "Queued Download"
-    STATUS_QUEUEUP = "Queued Upload"
-    STATUS_PAUSED = "Paused"
-    STATUS_ARCHIVING = "Archiving"
-    STATUS_EXTRACTING = "Extracting"
-    STATUS_SPLITTING = "Spliting"
-    STATUS_CHECKING = "CheckingUp"
-    STATUS_SEEDING = "Seeding"
+    STATUS_UPLOADING = "Upload"
+    STATUS_DOWNLOADING = "Download"
+    STATUS_CLONING = "Clone"
+    STATUS_QUEUEDL = "QueueDL"
+    STATUS_QUEUEUP = "QueueUP"
+    STATUS_PAUSED = "Pause"
+    STATUS_ARCHIVING = "Archive"
+    STATUS_EXTRACTING = "Extract"
+    STATUS_SPLITTING = "Split"
+    STATUS_CHECKING = "CheckUP"
+    STATUS_SEEDING = "Seed"
 
 class setInterval:
     def __init__(self, interval, action):
@@ -123,6 +123,20 @@ def get_progress_bar_string(pct):
         p_str += ['◔', '◓', '◒', '◑', '◐', '◕', '●'][cPart]
     p_str += '○' * (12 - cFull)
     return f"[{p_str}]"
+
+
+class EngineStatus:
+    STATUS_ARIA = f"Aria2 v{aria2.client.get_version()['version']}"
+    STATUS_GD = f"Google-API v{get_distribution('google-api-python-client').version}"
+    STATUS_MEGA = f"MegaSDK v{MegaApi('test').getVersion()}"
+    STATUS_QB = f"qBit {get_client().app.version}"
+    STATUS_TG = f"Pyrogram v{get_distribution('pyrogram').version}"
+    STATUS_YT = f"yt-dlp v{get_distribution('yt-dlp').version}"
+    STATUS_EXT = "pExtract v2"
+    STATUS_SPLIT_MERGE = f"ffmpeg v{get_ffmpeg_version()}"
+    STATUS_ZIP = f"p7zip v{get_p7zip_version()}"
+    STATUS_QUEUE = "Sleep v0"
+    STATUS_RCLONE = f"RClone {get_rclone_version()}"
 
 
 def get_readable_message():
@@ -231,7 +245,7 @@ def get_readable_message():
         buttons.ibutton(BotTheme('NEXT'), "status nex")
     button = buttons.build_menu(3)
 
-    msg += "____________________________"
+    msg += BotTheme('Cpu', cpu=cpu_percent())
     msg += BotTheme('DISK', free=get_readable_file_size(disk_usage(config_dict['DOWNLOAD_DIR']).free), free_p=round(100-disk_usage(config_dict['DOWNLOAD_DIR']).percent, 1))
     msg += BotTheme('uptime', uptime=get_readable_time(time() - botStartTime))
     msg += BotTheme('DL', DL=get_readable_file_size(dl_speed))
@@ -359,9 +373,15 @@ async def get_content_type(url):
         return None
 
 
-def update_user_ldata(id_, key, value):
+def update_user_ldata(id_, key=None, value=None):
+    exception_keys = ['is_sudo', 'is_auth', 'dly_tasks']
     if not key and not value:
-        user_data[id_] = {}
+        if id_ in user_data:
+            updated_data = {}
+            for k, v in user_data[id_].items():
+                if k in exception_keys:
+                    updated_data[k] = v
+            user_data[id_] = updated_data
         return
     user_data.setdefault(id_, {})
     user_data[id_][key] = value
@@ -384,24 +404,25 @@ async def check_user_tasks(user_id, maxtask):
 
 
 def checking_access(user_id, button=None):
-    if not config_dict['TOKEN_TIMEOUT']:
+    if not config_dict['TOKEN_TIMEOUT'] or bool(user_id == OWNER_ID or user_id in user_data and user_data[user_id].get('is_sudo')):
         return None, button
     user_data.setdefault(user_id, {})
     data = user_data[user_id]
     expire = data.get('time')
-    isExpired = (expire is None or expire is not None and (
-        time() - expire) > config_dict['TOKEN_TIMEOUT'])
+    if config_dict['LOGIN_PASS'] is not None and data.get('token', '') == config_dict['LOGIN_PASS']:
+        return None, button
+    isExpired = (expire is None or expire is not None and (time() - expire) > config_dict['TOKEN_TIMEOUT'])
     if isExpired:
-        token = data['token'] if expire is None and 'token' in data else str(
-            uuid4())
+        token = data['token'] if expire is None and 'token' in data else str(uuid4())
         if expire is not None:
             del data['time']
         data['token'] = token
         user_data[user_id].update(data)
         if button is None:
             button = ButtonMaker()
-        button.ubutton('Get New Token', short_url(f'https://telegram.me/{bot_name}?start={token}'))
-        return 'Your <b>Token</b> is expired. Get a new one.', button
+        encrypt_url = b64encode(f"{token}&&{user_id}".encode()).decode()
+        button.ubutton('Generate New Token', short_url(f'https://t.me/{bot_name}?start={encrypt_url}'))
+        return 'Temp Token is expired, generate a new temp token and try again.', button
     return None, button
 
 
@@ -464,3 +485,14 @@ async def set_commands(client):
             BotCommand(f'{BotCommands.UserSetCommand}', 'Users settings'),
             BotCommand(f'{BotCommands.HelpCommand}', 'Get detailed help'),
         ])
+            await client.set_bot_commands(bot_cmds)
+            LOGGER.info('Bot Commands have been Set & Updated')
+        except Exception as err:
+            LOGGER.error(err)
+
+
+
+def is_valid_token(url, token):
+    resp = rget(url=f"{url}getAccountDetails?token={token}&allDetails=true").json()
+    if resp["status"] == "error-wrongToken":
+        raise Exception("Invalid Gofile Token, Get your Gofile token from --> https://gofile.io/myProfile")
