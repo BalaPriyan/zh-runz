@@ -76,3 +76,7 @@ class ExtractStatus:
         else:
             self.__listener.suproc = 'cancelled'
         await self.__listener.onUploadError('extracting stopped by user!')
+
+
+    def eng(self):
+        return EngineStatus.STATUS_EXT
