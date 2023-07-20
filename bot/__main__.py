@@ -39,9 +39,9 @@ from .modules import (anonymous, authorize, bot_settings, cancel_mirror,
 @new_thread
 async def stats(_, message):
     if await aiopath.exists('.git'):
-        last_commit = (await cmd_exec("git log -1 --date=short --pretty=format:'%cr'", True))[0]
+        last_commit = (await cmd_exec("git log -1 --pretty='%cd ( %cr )' --date=format-local:'%d/%m/%Y'", True))[0]
         version = (await cmd_exec("git describe --abbrev=0 --tags", True))[0]
-        change_log = (await cmd_exec("git log -1 --pretty=format:'%s'", True))[0]
+        changelog = (await cmd_exec("git log -1 --pretty=format:'<code>%s</code> <b>By</b> %an'", True))[0]
     else:
         last_commit = 'No UPSTREAM_REPO'
         version = 'N/A'
